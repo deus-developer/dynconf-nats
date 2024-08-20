@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  nats:
+    image: nats
+    container_name: feature-nats
+    hostname: feature-nats-server
+    restart: unless-stopped
+    command: -js
+
+  nui:
+    image: ghcr.io/nats-nui/nui:0.4.3
+    depends_on:
+      - nats
+    container_name: feature-nui
+    hostname: feature-nui-server
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:31311:31311"
+
+  feature-service:
+    build:
+      context: .
+    depends_on:
+      - nats
+    container_name: feature-service
+    hostname: feature-service-server
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    environment:
+      NATS_SERVERS: "nats://feature-nats-server:4222"
